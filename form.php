@@ -1,4 +1,5 @@
 <?php
+session_start();
 
 require_once "cookiya.php";
 
@@ -22,6 +23,10 @@ try {
 		}
 
 		echo "<body>Database and table form created successfully.</body>";
+		
+		$_SESSION["database"] = "set";
+		$_SESSION["table"] = "set";
+
 		mysqli_close($connect);
 	} 
 } catch (mysqli_sql_exception $e) {
@@ -34,10 +39,12 @@ $nameErr = $emailErr = $usrErr = $pswdErr = "";
 
 if(isset($_SERVER["REQUEST_METHOD"])) {
 	if ($_SERVER["REQUEST_METHOD"] == "POST") {
-		if (empty($_POST["fullname"]))	$nameErr = "Name is required.";
+		if (empty($_POST["fullname"]))	
+			$nameErr = "Name is required.";
 		else	$fullname = trimmer($_POST["fullname"]);
 		
-		if (empty($_POST["email"]))	$emailErr = "Email is required.";
+		if (empty($_POST["email"]))	
+			$emailErr = "Email is required.";
 		else 	{
 			$email = trimmer($_POST["email"]);
 			if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
@@ -45,13 +52,24 @@ if(isset($_SERVER["REQUEST_METHOD"])) {
 			}
 		}
 		
-		if (empty($_POST["username"]))	$usrErr = "Username is required.";
+		if (empty($_POST["username"]))
+			$usrErr = "Username is required.";
 		else 	$username = trimmer($_POST["username"]);
 		
-		if (empty($_POST["pswd"]))	$pswdErr = "Password is required.";
+		if (empty($_POST["pswd"]))	
+			$pswdErr = "Password is required.";
 		else $pswd = trimmer($_POST["pswd"]);
 
-		$insert_sql = mysqli_query($connect, "INSERT INTO");
+		$connect = mysqli_connect(server, username, password, database) or die('Error connecting to MySQL server: ' . mysql_error());
+		$insert_sql = "INSERT INTO form (fullname, email, username, password) VALUES ($fullname, $email, $username, $pswd)";
+		
+		try {
+			if (mysqli_query($connect, $insert_sql) or die('Error performing query ' . $insert_sql . '\': ' . mysqli_error($connect))) {
+				echo "Data inserted sucessfully.";
+			}
+		} catch (mysqli_sql_exception $e) {
+			throw $e;
+		}
 	}
 }
 
@@ -62,6 +80,9 @@ function trimmer($value) {
 
 	return $value;
 }
+
+session_unset();
+session_destroy();
 
 ?>
 
